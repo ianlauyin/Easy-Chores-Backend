@@ -11,8 +11,8 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 
 import os
-from dotenv import load_dotenv
 from pathlib import Path
+from dotenv import load_dotenv
 load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -110,7 +110,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Hong_Kong'
 
 USE_I18N = True
 
