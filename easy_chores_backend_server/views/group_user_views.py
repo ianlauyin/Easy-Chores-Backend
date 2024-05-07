@@ -23,21 +23,40 @@ class GroupUserViews(View):
         except Group.DoesNotExist:
             return HttpResponseBadRequest('Invalid Group Id')
 
-    def post(self, request, group_id):
+    def post(self, _, group_id, user_id):
         """
         Add user into a group
         """
         try:
             group = self.__get_group(group_id)
-            body = json.loads(request.body.decode('utf-8'))
-            if 'user_id' not in body:
-                raise ValueError('Missing Request body: user_id')
-            user = self.__get_user(body['user_id'])
+            user = self.__get_user(user_id)
+            if user in group.user_set.all():
+                raise ValueError(
+                    f'User Id ({user_id}) already in Group Id ({group_id})')
             group.user_set.add(user)
             return HttpResponse()
         except Group.DoesNotExist:
             return HttpResponseBadRequest('Invalid Group Id')
-        except ValueError as e:
-            return HttpResponseBadRequest(str(e))
         except User.DoesNotExist:
             return HttpResponseBadRequest('Invalid User Id')
+        except ValueError as e:
+            return HttpResponseBadRequest(str(e))
+
+    def delete(self, _, group_id, user_id):
+        """
+        remove user from a group
+        """
+        try:
+            group = self.__get_group(group_id)
+            user = self.__get_user(user_id)
+            if user not in group.user_set.all():
+                raise ValueError(
+                    f'User Id ({user_id}) is not in Group Id ({group_id})')
+            group.user_set.remove(user)
+            return HttpResponse()
+        except Group.DoesNotExist:
+            return HttpResponseBadRequest('Invalid Group Id')
+        except User.DoesNotExist:
+            return HttpResponseBadRequest('Invalid User Id')
+        except ValueError as e:
+            return HttpResponseBadRequest(str(e))
