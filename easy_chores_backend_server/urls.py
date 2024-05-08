@@ -1,11 +1,13 @@
 from django.conf.urls.static import static
 from django.conf import settings
 from django.urls import path
-from .views.group_user_views import GroupUserViews
+from .views.group_views import GroupUserViews, get_grocery_list, get_chore_list
 
 urlpatterns = [
     path('groups/<int:group_id>/users', GroupUserViews.as_view()),
-    path('groups/<int:group_id>/user/<int:user_id>', GroupUserViews.as_view())]
+    path('groups/<int:group_id>/user/<int:user_id>', GroupUserViews.as_view()),
+    path('group/<int:group_id>/groceries', get_grocery_list),
+    path('group/<int:group_id>/chores', get_chore_list)]
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL,

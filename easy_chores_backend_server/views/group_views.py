@@ -1,8 +1,8 @@
 from django.http import HttpResponseBadRequest, JsonResponse, HttpResponse
 from django.contrib.auth.models import Group, User
+from django.contrib.postgres.aggregates import ArrayAgg
 from django.views.decorators.http import require_GET
 from django.views import View
-import json
 
 
 class GroupUserViews(View):
@@ -60,3 +60,25 @@ class GroupUserViews(View):
             return HttpResponseBadRequest('Invalid User Id')
         except ValueError as e:
             return HttpResponseBadRequest(str(e))
+
+
+@require_GET
+def get_grocery_list(request, group_id):
+    try:
+        group = Group.objects.get(id=group_id)
+        groceries = group.groceries.all().values(
+            'id', 'creator__username', 'quantity', 'created_at')
+        return JsonResponse(list(groceries), safe=False)
+    except Group.DoesNotExist:
+        return HttpResponseBadRequest('Invalid Group Id')
+
+
+@require_GET
+def get_chore_list(request, group_id):
+    try:
+        group = Group.objects.get(id=group_id)
+        chores = group.chores.filter(completed_date=None).values('id', 'title', 'due_date').annotate(
+            assigned_users=ArrayAgg('assigned_users__username'))
+        return JsonResponse(list(chores), safe=False)
+    except Group.DoesNotExist:
+        return HttpResponseBadRequest('Invalid Group Id')
