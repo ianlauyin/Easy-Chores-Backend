@@ -1,8 +1,10 @@
 from django.http import HttpResponseBadRequest, JsonResponse, HttpResponse
 from django.contrib.auth.models import Group, User
 from django.contrib.postgres.aggregates import ArrayAgg
-from django.views.decorators.http import require_GET
+from django.views.decorators.http import require_GET, require_POST
 from django.views import View
+from django.db import transaction
+import json
 
 
 class GroupUserViews(View):
@@ -60,6 +62,27 @@ class GroupUserViews(View):
             return HttpResponseBadRequest('Invalid User Id')
         except ValueError as e:
             return HttpResponseBadRequest(str(e))
+
+
+@require_POST
+def create_group(request):
+    try:
+        with transaction.atomic():
+            data = json.loads(request.body)
+            if ('user_id' not in data):
+                raise ValueError('Missing Required body: user_id')
+            if ('name' not in data):
+                raise ValueError('Missing Required body: name')
+            new_group = Group.objects.create(name=data['name'])
+            user = User.objects.get(id=data['user_id'])
+            new_group.user_set.add(user)
+            return JsonResponse({"group_id": new_group.id})
+    except json.JSONDecodeError:
+        return HttpResponseBadRequest("Required JSON body data")
+    except User.DoesNotExist:
+        return HttpResponseBadRequest("Invalid user_id")
+    except ValueError as e:
+        return HttpResponseBadRequest(str(e))
 
 
 @require_GET
