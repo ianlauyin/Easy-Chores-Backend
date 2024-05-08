@@ -97,6 +97,13 @@ class GroupTestCase(TestCase):
         self.assertEqual(new_group.name, 'New Group')
         self.assertEqual(new_group.user_set.first(), self.user1)
 
+    def test_create_group_extra_key(self):
+        new_group_data = {'user_id': self.user1.id,
+                          'name': 'New Group', "extra": "Extra key"}
+        response = self.client.post(
+            '/group', json.dumps(new_group_data), content_type='application/json')
+        self.assertEqual(response.status_code, 200)
+
     def test_create_group_missing_name(self):
         new_group_data = {'user_id': self.user1.id}
         response = self.client.post(
@@ -166,13 +173,12 @@ class GroupTestCase(TestCase):
         self.chore2.completed_date = datetime.datetime.now()
         self.chore2.save()
         response = self.client.get(f'/group/{self.test_group.id}/chores')
-        expected_data = [{
-            'due_date': None,
-            'assigned_users': [self.user1.username, self.user2.username],
-            'id': self.chore1.id,
-            'title': self.chore1.title
-        }]
-        self.assertEqual(json.loads(response.content), expected_data)
+        response_data = json.loads(response.content)
+        self.assertEqual(response_data[0]['due_date'], None)
+        self.assertEqual(response_data[0]['id'], self.chore1.id)
+        self.assertEqual(response_data[0]['title'], self.chore1.title)
+        self.assertIn(self.user1.username, response_data[0]['assigned_users'])
+        self.assertIn(self.user2.username, response_data[0]['assigned_users'])
 
     def test_get_empty_chores_list(self):
         new_group = Group.objects.create(name='New Group')

@@ -69,10 +69,10 @@ def create_group(request):
     try:
         with transaction.atomic():
             data = json.loads(request.body)
-            if ('user_id' not in data):
-                raise ValueError('Missing Required body: user_id')
-            if ('name' not in data):
-                raise ValueError('Missing Required body: name')
+            if 'user_id' not in data:
+                raise ValueError('user_id')
+            if 'name' not in data:
+                raise ValueError('name')
             new_group = Group.objects.create(name=data['name'])
             user = User.objects.get(id=data['user_id'])
             new_group.user_set.add(user)
@@ -82,7 +82,7 @@ def create_group(request):
     except User.DoesNotExist:
         return HttpResponseBadRequest("Invalid user_id")
     except ValueError as e:
-        return HttpResponseBadRequest(str(e))
+        return HttpResponseBadRequest(f'Missing Required body: {e}')
 
 
 @require_GET

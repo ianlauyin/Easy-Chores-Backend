@@ -8,7 +8,7 @@ class Grocery(models.Model):
     group = models.ForeignKey(
         Group, on_delete=models.CASCADE, related_name='groceries')
     name = models.CharField(max_length=100)
-    detail = models.TextField()
+    detail = models.TextField(null=True)
     quantity = models.IntegerField(default=1)
     created_at = models.DateTimeField(auto_now_add=True)
 
