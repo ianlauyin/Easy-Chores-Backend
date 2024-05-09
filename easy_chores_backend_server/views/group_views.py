@@ -86,7 +86,7 @@ def create_group(request):
 
 
 @require_GET
-def get_grocery_list(request, group_id):
+def get_grocery_list(_, group_id):
     try:
         group = Group.objects.get(id=group_id)
         groceries = group.groceries.all().values(
@@ -97,10 +97,10 @@ def get_grocery_list(request, group_id):
 
 
 @require_GET
-def get_chore_list(request, group_id):
+def get_chore_list(_, group_id):
     try:
         group = Group.objects.get(id=group_id)
-        chores = group.chores.filter(completed_date=None).values('id', 'title', 'due_date').annotate(
+        chores = group.chores.filter(completed_date=None).values('id', 'title').annotate(
             assigned_users=ArrayAgg('assigned_users__username'))
         return JsonResponse(list(chores), safe=False)
     except Group.DoesNotExist:

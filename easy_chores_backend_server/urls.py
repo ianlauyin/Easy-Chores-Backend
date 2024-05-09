@@ -10,7 +10,8 @@ urlpatterns = [
     path('group/<int:group_id>/chores', get_chore_list),
     path('groups/<int:group_id>/users', GroupUserViews.as_view()),
     path('groups/<int:group_id>/user/<int:user_id>', GroupUserViews.as_view()),
-    path('grocery', GroceryViews.as_view())]
+    path('grocery', GroceryViews.as_view()),
+    path('grocery/<int:grocery_id>', GroceryViews.as_view())]
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL,

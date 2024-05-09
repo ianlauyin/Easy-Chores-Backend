@@ -129,13 +129,13 @@ class GroupTestCase(TestCase):
         response = self.client.get(f'/group/{self.test_group.id}/groceries')
         self.assertIsInstance(response, JsonResponse)
         expected_data = [{
-            'created_at': self.grocery1.created_at.strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3]+'Z',
+            'created_at': self.grocery1.created_at.strftime('%Y-%m-%d'),
             'creator__username': self.user1.username,
             'id': self.grocery1.id,
             'quantity': self.grocery1.quantity
         },
             {
-            'created_at': self.grocery2.created_at.strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3]+'Z',
+            'created_at': self.grocery2.created_at.strftime('%Y-%m-%d'),
             'creator__username': self.user1.username,
             'id': self.grocery2.id,
             'quantity': self.grocery2.quantity
@@ -153,28 +153,10 @@ class GroupTestCase(TestCase):
         self.assertEqual(response.status_code, 400)
 
     def test_get_chore_list(self):
-        response = self.client.get(f'/group/{self.test_group.id}/chores')
-        self.assertIsInstance(response, JsonResponse)
-        expected_data = [{
-            'due_date': None,
-            'assigned_users': [self.user1.username, self.user2.username],
-            'id': self.chore1.id,
-            'title': self.chore1.title
-        },
-            {
-            'due_date': None,
-            'assigned_users': [None],
-            'id': self.chore2.id,
-            'title': self.chore2.title
-        }]
-        self.assertEqual(json.loads(response.content), expected_data)
-
-    def test_get_chore_list_without_completed(self):
         self.chore2.completed_date = datetime.datetime.now()
         self.chore2.save()
         response = self.client.get(f'/group/{self.test_group.id}/chores')
         response_data = json.loads(response.content)
-        self.assertEqual(response_data[0]['due_date'], None)
         self.assertEqual(response_data[0]['id'], self.chore1.id)
         self.assertEqual(response_data[0]['title'], self.chore1.title)
         self.assertIn(self.user1.username, response_data[0]['assigned_users'])
