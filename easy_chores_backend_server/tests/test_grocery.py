@@ -3,6 +3,7 @@ from django.http import JsonResponse, HttpRequest
 from django.contrib.auth.models import Group, User
 from django.forms.models import model_to_dict
 from django.core.files import File
+from django.core.files.uploadedfile import SimpleUploadedFile
 from ..models.grocery import Grocery
 from ..models.grocery_photo import GroceryPhoto
 import json
@@ -61,8 +62,11 @@ class GroceryTestCase(TestCase):
             'group_id': self.test_group.id,
             'name': 'New Test Grocery',
         }
-        response = self.client.post('/grocery', json.dumps(new_grocery_data),
-                                    content_type='application/json')
+        response = self.client.post(
+            '/grocery',
+            json.dumps(new_grocery_data),
+            content_type='application/json',
+        )
         self.assertIsInstance(response, JsonResponse)
         response_data = json.loads(response.content)
         self.assertTrue('grocery_id' in response_data)
@@ -194,4 +198,19 @@ class GroceryTestCase(TestCase):
         }
         response = self.client.put(
             f'/grocery/0', json.dumps(update_data), content_type='application/json')
+        self.assertEqual(response.status_code, 400)
+
+    def test_grocery_view_delete(self):
+        response = self.client.delete(f'/grocery/{self.grocery.id}')
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(GroceryPhoto.objects.filter(
+            id=self.photo1.id).exists())
+        self.assertFalse(GroceryPhoto.objects.filter(
+            id=self.photo2.id).exists())
+        self.assertFalse(os.path.exists(self.photo1.photo.path))
+        self.assertFalse(os.path.exists(self.photo2.photo.path))
+        self.assertFalse(Grocery.objects.filter(id=self.grocery.id).exists())
+
+    def test_grocery_view_delete_invalid_id(self):
+        response = self.client.delete(f'/grocery/0')
         self.assertEqual(response.status_code, 400)

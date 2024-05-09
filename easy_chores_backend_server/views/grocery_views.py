@@ -2,8 +2,11 @@ from django.views import View
 from django.contrib.auth.models import Group, User
 from django.http import JsonResponse, HttpResponseBadRequest, HttpResponse
 from django.forms.models import model_to_dict
-from ..models import Grocery
+from django.core.files import File
+from django.db import transaction
+from ..models import Grocery, GroceryPhoto
 import json
+import os
 
 
 class GroceryViews(View):
@@ -77,3 +80,20 @@ class GroceryViews(View):
             return HttpResponseBadRequest('Invalid Grocery Id')
         except ValueError as e:
             return HttpResponseBadRequest(str(e))
+
+    def delete(self, _, grocery_id):
+        """
+        Delete Grocery Item
+        """
+        try:
+            with transaction.atomic():
+                grocery = Grocery.objects.get(id=grocery_id)
+                grocery_photos = grocery.grocery_photos.all()
+                for grocery_photo in grocery_photos:
+                    if os.path.exists(grocery_photo.photo.path):
+                        os.remove(grocery_photo.photo.path)
+                    grocery_photo.delete()
+                grocery.delete()
+                return HttpResponse()
+        except Grocery.DoesNotExist:
+            return HttpResponseBadRequest('Invalid Grocery Id')
