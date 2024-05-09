@@ -2,9 +2,8 @@ from django.views import View
 from django.contrib.auth.models import Group, User
 from django.http import JsonResponse, HttpResponseBadRequest, HttpResponse
 from django.forms.models import model_to_dict
-from django.core.files import File
 from django.db import transaction
-from ..models import Grocery, GroceryPhoto
+from ..models import Grocery
 import json
 import os
 
@@ -83,7 +82,7 @@ class GroceryViews(View):
 
     def delete(self, _, grocery_id):
         """
-        Delete Grocery Item
+        Delete Grocery Item along with photos
         """
         try:
             with transaction.atomic():

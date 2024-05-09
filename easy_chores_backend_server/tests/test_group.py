@@ -48,49 +48,49 @@ class GroupTestCase(TestCase):
     def test_group_user_post(self):
         new_user = User.objects.create(username='user3', password='5678')
         response = self.client.post(
-            f'/groups/{self.test_group.id}/user/{new_user.id}')
+            f'/groups/{self.test_group.id}/users/{new_user.id}')
         self.assertEqual(response.status_code, 200)
         self.assertTrue(self.test_group.user_set.filter(
             id=new_user.id).exists())
 
     def test_group_user_post_invalid_group(self):
         new_user = User.objects.create(username='user3', password='5678')
-        response = self.client.post(f'/groups/0/user/{new_user.id}')
+        response = self.client.post(f'/groups/0/users/{new_user.id}')
         self.assertEqual(response.status_code, 400)
 
     def test_group_user_post_invalid_user(self):
-        response = self.client.post(f'/groups/{self.test_group.id}/user/0')
+        response = self.client.post(f'/groups/{self.test_group.id}/users/0')
         self.assertEqual(response.status_code, 400)
 
     def test_group_user_post_repeated_user(self):
         response = self.client.post(
-            f'/groups/{self.test_group.id}/user/{self.user1.id}')
+            f'/groups/{self.test_group.id}/users/{self.user1.id}')
         self.assertEqual(response.status_code, 400)
 
     def test_group_user_delete(self):
         response = self.client.delete(
-            f'/groups/{self.test_group.id}/user/{self.user1.id}')
+            f'/groups/{self.test_group.id}/users/{self.user1.id}')
         self.assertEqual(response.status_code, 200)
         self.assertTrue(self.user1 not in self.test_group.user_set.all())
 
     def test_group_user_delete_invalid_group(self):
-        response = self.client.delete(f'/groups/0/user/{self.user1.id}')
+        response = self.client.delete(f'/groups/0/users/{self.user1.id}')
         self.assertEqual(response.status_code, 400)
 
     def test_group_user_delete_invalid_user_id(self):
-        response = self.client.delete(f'/groups/{self.test_group.id}/user/0')
+        response = self.client.delete(f'/groups/{self.test_group.id}/users/0')
         self.assertEqual(response.status_code, 400)
 
     def test_group_user_delete_user_not_exist(self):
         new_user = User.objects.create(username='user3', password='5678')
         response = self.client.delete(
-            f'/groups/{self.test_group.id}/user/{new_user.id}')
+            f'/groups/{self.test_group.id}/users/{new_user.id}')
         self.assertEqual(response.status_code, 400)
 
     def test_create_group(self):
         new_group_data = {'user_id': self.user1.id, 'name': 'New Group'}
         response = self.client.post(
-            '/group', json.dumps(new_group_data), content_type='application/json')
+            '/groups', json.dumps(new_group_data), content_type='application/json')
         self.assertEqual(response.status_code, 200)
         response_data = json.loads(response.content)
         new_group = Group.objects.get(id=response_data['group_id'])
@@ -101,32 +101,32 @@ class GroupTestCase(TestCase):
         new_group_data = {'user_id': self.user1.id,
                           'name': 'New Group', "extra": "Extra key"}
         response = self.client.post(
-            '/group', json.dumps(new_group_data), content_type='application/json')
+            '/groups', json.dumps(new_group_data), content_type='application/json')
         self.assertEqual(response.status_code, 200)
 
     def test_create_group_missing_name(self):
         new_group_data = {'user_id': self.user1.id}
         response = self.client.post(
-            '/group', json.dumps(new_group_data), content_type='application/json')
+            '/groups', json.dumps(new_group_data), content_type='application/json')
         self.assertEqual(response.status_code, 400)
         self.assertEqual(Group.objects.count(), 1)
 
     def test_create_group_user_id(self):
         new_group_data = {'name': 'New Group'}
         response = self.client.post(
-            '/group', json.dumps(new_group_data), content_type='application/json')
+            '/groups', json.dumps(new_group_data), content_type='application/json')
         self.assertEqual(response.status_code, 400)
         self.assertEqual(Group.objects.count(), 1)
 
     def test_create_group_invalid_user_id(self):
         new_group_data = {'user_id': 0, 'name': 'New Group'}
         response = self.client.post(
-            '/group', json.dumps(new_group_data), content_type='application/json')
+            '/groups', json.dumps(new_group_data), content_type='application/json')
         self.assertEqual(response.status_code, 400)
         self.assertEqual(Group.objects.count(), 1)
 
     def test_get_grocery_list(self):
-        response = self.client.get(f'/group/{self.test_group.id}/groceries')
+        response = self.client.get(f'/groups/{self.test_group.id}/groceries')
         self.assertIsInstance(response, JsonResponse)
         expected_data = [{
             'created_at': self.grocery1.created_at.strftime('%Y-%m-%d'),
@@ -144,18 +144,18 @@ class GroupTestCase(TestCase):
 
     def test_get_empty_grocery_list(self):
         new_group = Group.objects.create(name='New Group')
-        response = self.client.get(f'/group/{new_group.id}/groceries')
+        response = self.client.get(f'/groups/{new_group.id}/groceries')
         self.assertIsInstance(response, JsonResponse)
         self.assertEqual(json.loads(response.content), [])
 
     def test_get_grocery_list_invalid_group(self):
-        response = self.client.get(f'/group/0/groceries')
+        response = self.client.get(f'/groups/0/groceries')
         self.assertEqual(response.status_code, 400)
 
     def test_get_chore_list(self):
         self.chore2.completed_date = datetime.datetime.now()
         self.chore2.save()
-        response = self.client.get(f'/group/{self.test_group.id}/chores')
+        response = self.client.get(f'/groups/{self.test_group.id}/chores')
         response_data = json.loads(response.content)
         self.assertEqual(response_data[0]['id'], self.chore1.id)
         self.assertEqual(response_data[0]['title'], self.chore1.title)
@@ -164,10 +164,10 @@ class GroupTestCase(TestCase):
 
     def test_get_empty_chores_list(self):
         new_group = Group.objects.create(name='New Group')
-        response = self.client.get(f'/group/{new_group.id}/chores')
+        response = self.client.get(f'/groups/{new_group.id}/chores')
         self.assertIsInstance(response, JsonResponse)
         self.assertEqual(json.loads(response.content), [])
 
     def test_get_grocery_list_invalid_group(self):
-        response = self.client.get(f'/group/0/chores')
+        response = self.client.get(f'/groups/0/chores')
         self.assertEqual(response.status_code, 400)
