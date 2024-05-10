@@ -1,6 +1,6 @@
 from django.views import View
 from django.contrib.auth.models import Group, User
-from django.http import JsonResponse, HttpResponseBadRequest, HttpResponse
+from django.http import JsonResponse, HttpResponseBadRequest, HttpResponse, HttpResponseServerError
 from django.forms.models import model_to_dict
 from django.db import transaction
 from ..models import Grocery
@@ -22,6 +22,8 @@ class GroceryViews(View):
             return JsonResponse(grocery_data)
         except Grocery.DoesNotExist:
             return HttpResponseBadRequest('Invalid Grocery Id')
+        except:
+            return HttpResponseServerError('Error is occured. Please try again later')
 
     def post(self, request):
         """
@@ -54,6 +56,8 @@ class GroceryViews(View):
             return HttpResponseBadRequest('Invalid User Id')
         except ValueError as e:
             return HttpResponseBadRequest(f'Missing Required body:{e}')
+        except:
+            return HttpResponseServerError('Error is occured. Please try again later')
 
     def put(self, request, grocery_id):
         """
@@ -79,6 +83,8 @@ class GroceryViews(View):
             return HttpResponseBadRequest('Invalid Grocery Id')
         except ValueError as e:
             return HttpResponseBadRequest(str(e))
+        except:
+            return HttpResponseServerError('Error is occured. Please try again later')
 
     def delete(self, _, grocery_id):
         """
@@ -96,3 +102,5 @@ class GroceryViews(View):
                 return HttpResponse()
         except Grocery.DoesNotExist:
             return HttpResponseBadRequest('Invalid Grocery Id')
+        except:
+            return HttpResponseServerError('Error is occured. Please try again later')

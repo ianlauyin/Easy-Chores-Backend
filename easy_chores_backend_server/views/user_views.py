@@ -1,6 +1,5 @@
 import json
-from django.http import HttpResponse, HttpResponseBadRequest
-from django.contrib.auth.models import User
+from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseServerError
 from django.views import View
 from django.core.exceptions import ValidationError
 
@@ -19,10 +18,5 @@ class UserViews(View):
             return HttpResponseBadRequest('Invalid data')
         except ValidationError as e:
             return HttpResponseBadRequest(str(e))
-
-
-def UserLoginView(request):
-    """
-    Should be  integrate with apple sign
-    """
-    return
+        except:
+            return HttpResponseServerError('Error is occured. Please try again later')

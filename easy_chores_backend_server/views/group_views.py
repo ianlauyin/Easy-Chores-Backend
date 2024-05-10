@@ -1,4 +1,4 @@
-from django.http import HttpResponseBadRequest, JsonResponse, HttpResponse
+from django.http import HttpResponseBadRequest, JsonResponse, HttpResponse, HttpResponseServerError
 from django.contrib.auth.models import Group, User
 from django.contrib.postgres.aggregates import ArrayAgg
 from django.views.decorators.http import require_GET, require_POST
@@ -24,6 +24,8 @@ class GroupUserViews(View):
             return JsonResponse(list(users), safe=False)
         except Group.DoesNotExist:
             return HttpResponseBadRequest('Invalid Group Id')
+        except:
+            return HttpResponseServerError('Error is occured. Please try again later')
 
     def post(self, _, group_id, user_id):
         """
@@ -43,6 +45,8 @@ class GroupUserViews(View):
             return HttpResponseBadRequest('Invalid User Id')
         except ValueError as e:
             return HttpResponseBadRequest(str(e))
+        except:
+            return HttpResponseServerError('Error is occured. Please try again later')
 
     def delete(self, _, group_id, user_id):
         """
@@ -62,6 +66,8 @@ class GroupUserViews(View):
             return HttpResponseBadRequest('Invalid User Id')
         except ValueError as e:
             return HttpResponseBadRequest(str(e))
+        except:
+            return HttpResponseServerError('Error is occured. Please try again later')
 
 
 @require_POST
@@ -83,6 +89,8 @@ def create_group(request):
         return HttpResponseBadRequest("Invalid user_id")
     except ValueError as e:
         return HttpResponseBadRequest(f'Missing Required body: {e}')
+    except:
+        return HttpResponseServerError('Error is occured. Please try again later')
 
 
 @require_GET
@@ -94,6 +102,8 @@ def get_grocery_list(_, group_id):
         return JsonResponse(list(groceries), safe=False)
     except Group.DoesNotExist:
         return HttpResponseBadRequest('Invalid Group Id')
+    except:
+        return HttpResponseServerError('Error is occured. Please try again later')
 
 
 @require_GET
@@ -105,3 +115,5 @@ def get_chore_list(_, group_id):
         return JsonResponse(list(chores), safe=False)
     except Group.DoesNotExist:
         return HttpResponseBadRequest('Invalid Group Id')
+    except:
+        return HttpResponseServerError('Error is occured. Please try again later')

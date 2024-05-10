@@ -1,5 +1,5 @@
-from django.core.validators import FileExtensionValidator
-from django.http import HttpResponseBadRequest, HttpResponse, JsonResponse
+
+from django.http import HttpResponseBadRequest, HttpResponse, JsonResponse, HttpResponseServerError
 from django.views.decorators.http import require_http_methods
 from ..models import GroceryPhoto, Grocery
 import os
@@ -18,6 +18,8 @@ def delete_grocery_photo(request, photo_id):
         return HttpResponse()
     except GroceryPhoto.DoesNotExist:
         return HttpResponseBadRequest('Invalid photo id')
+    except:
+        return HttpResponseServerError('Error is occured. Please try again later')
 
 
 @require_http_methods(["POST"])
@@ -44,3 +46,5 @@ def add_grocery_photo(request, grocery_id):
         return HttpResponseBadRequest('Invalid grocery id')
     except ValueError as e:
         return HttpResponseBadRequest(str(e))
+    except:
+        return HttpResponseServerError('Error is occured. Please try again later')

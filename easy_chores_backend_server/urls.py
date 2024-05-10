@@ -2,6 +2,7 @@ from django.conf.urls.static import static
 from django.conf import settings
 from django.urls import path
 from .views.group_views import GroupUserViews, get_grocery_list, get_chore_list, create_group
+from .views.chore_views import ChoreViews
 from .views.grocery_views import GroceryViews
 from .views.grocery_photo_views import delete_grocery_photo, add_grocery_photo
 
@@ -15,6 +16,9 @@ urlpatterns = [
     path('groceries/<int:grocery_id>', GroceryViews.as_view()),
     path('groceries/<int:grocery_id>/photos', add_grocery_photo),
     path('groceries/photos/<int:photo_id>', delete_grocery_photo),
+    path('chores', ChoreViews.as_view()),
+    path('chores/<int:chore_id>/', ChoreViews.as_view()),
+    path('chores/<int:chore_id>/groups/<int:group_id>', ChoreViews.as_view())
 ]
 
 if settings.DEBUG:
