@@ -68,7 +68,6 @@ class ChoreViews(View):
                 not_changed = False
                 completed_date = datetime.datetime.strptime(
                     data['completed_date'], '%Y-%m-%dT%H:%M:%S.%f').date()
-                print(completed_date)
                 setattr(chore, 'completed_date', completed_date)
             if not_changed:
                 raise ValueError(
@@ -81,5 +80,15 @@ class ChoreViews(View):
             return HttpResponseBadRequest('Invalid chore Id')
         except (ValueError, TypeError)as e:
             return HttpResponseBadRequest(str(e))
+        except:
+            return HttpResponseServerError('Error is occured. Please try again later')
+
+    def delete(self, _, chore_id):
+        try:
+            chore = Chore.objects.get(id=chore_id)
+            chore.delete()
+            return HttpResponse()
+        except Chore.DoesNotExist:
+            return HttpResponseBadRequest('Invalid chore Id')
         except:
             return HttpResponseServerError('Error is occured. Please try again later')

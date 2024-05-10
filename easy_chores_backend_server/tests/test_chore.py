@@ -151,3 +151,13 @@ class ChoreTestCase(TestCase):
         response = self.client.put(
             f'/chores/{self.chore.id}', json.dumps(update_data), content_type='application/json')
         self.assertEqual(response.status_code, 400)
+
+    def test_chore_view_delete(self):
+        response = self.client.delete(f'/chores/{self.chore.id}')
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(Chore.objects.filter(id=self.chore.id).exists())
+
+    def test_chore_view_delete_wrong_id(self):
+        response = self.client.delete(f'/chores/0')
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(Chore.objects.count(), 1)
