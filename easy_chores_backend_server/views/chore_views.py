@@ -1,6 +1,7 @@
 from django.views import View
 from ..models import Chore
-from django.contrib.auth.models import Group
+from django.contrib.auth.models import Group, User
+from django.views.decorators.http import require_http_methods
 from django.http import HttpResponseBadRequest, JsonResponse, HttpResponseServerError, HttpResponse
 from django.forms import model_to_dict
 import json
@@ -84,6 +85,9 @@ class ChoreViews(View):
             return HttpResponseServerError('Error is occured. Please try again later')
 
     def delete(self, _, chore_id):
+        """
+        Delete Chore Item
+        """
         try:
             chore = Chore.objects.get(id=chore_id)
             chore.delete()
@@ -92,3 +96,26 @@ class ChoreViews(View):
             return HttpResponseBadRequest('Invalid chore Id')
         except:
             return HttpResponseServerError('Error is occured. Please try again later')
+
+
+@require_http_methods(['PUT'])
+def rearrange_chores_assigned_users(request, chore_id):
+    try:
+        chore = Chore.objects.get(id=chore_id)
+        data: dict = json.loads(request.body)
+        if 'user_ids' not in data:
+            raise ValueError('Require key: user_ids:list[int]')
+        if not isinstance(data['user_ids'], list):
+            raise TypeError('Wrong Type for user_ids, need list')
+        for user_id in data['user_ids']:
+            if not isinstance(user_id, int):
+                raise TypeError('Wrong Type of user_id, need int')
+        new_assigned_users = User.objects.filter(id__in=data['user_ids'])
+        chore.assigned_users.set(new_assigned_users)
+        return HttpResponse()
+    except Chore.DoesNotExist:
+        return HttpResponseBadRequest('Invalid chore id')
+    except (ValueError, TypeError) as e:
+        return HttpResponseBadRequest(str(e))
+    except:
+        return HttpResponseServerError('Error is occured. Please try again later')

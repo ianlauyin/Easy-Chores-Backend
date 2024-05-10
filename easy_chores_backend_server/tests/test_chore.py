@@ -161,3 +161,43 @@ class ChoreTestCase(TestCase):
         response = self.client.delete(f'/chores/0')
         self.assertEqual(response.status_code, 400)
         self.assertEqual(Chore.objects.count(), 1)
+
+    def test_rearrange_chores_assigned_users_remove(self):
+        response = self.client.put(
+            f'/chores/{self.chore.id}/users', json.dumps({'user_ids': []}), content_type='application/json')
+        self.assertEqual(response.status_code, 200)
+        self.chore.refresh_from_db()
+        self.assertEqual(self.chore.assigned_users.count(), 0)
+
+    def test_rearrange_chores_assigned_users_add(self):
+        new_user = User.objects.create(username='New User')
+        response = self.client.put(
+            f'/chores/{self.chore.id}/users', json.dumps({'user_ids': [self.user1.id, new_user.id]}), content_type='application/json')
+        self.assertEqual(response.status_code, 200)
+        self.chore.refresh_from_db()
+        self.assertEqual(self.chore.assigned_users.count(), 2)
+
+    def test_rearrange_chores_assigned_users_changed(self):
+        new_user = User.objects.create(username='New User')
+        response = self.client.put(
+            f'/chores/{self.chore.id}/users', json.dumps({'user_ids': [new_user.id]}), content_type='application/json')
+        self.assertEqual(response.status_code, 200)
+        self.chore.refresh_from_db()
+        self.assertEqual(self.chore.assigned_users.count(), 1)
+        self.assertEqual(self.chore.assigned_users.first(), new_user)
+
+    def test_rearrange_chores_assigned_users_invalid_id(self):
+        response = self.client.put(
+            f'/chores/0/users', json.dumps({'user_ids': []}), content_type='application/json')
+        self.assertEqual(response.status_code, 400)
+        self.chore.refresh_from_db()
+        self.assertEqual(self.chore.assigned_users.count(), 1)
+        self.assertEqual(self.chore.assigned_users.first(), self.user1)
+
+    def test_rearrange_chores_assigned_users_wrong_type(self):
+        response = self.client.put(
+            f'/chores/0/users', json.dumps({'user_ids': ['one']}), content_type='application/json')
+        self.assertEqual(response.status_code, 400)
+        self.chore.refresh_from_db()
+        self.assertEqual(self.chore.assigned_users.count(), 1)
+        self.assertEqual(self.chore.assigned_users.first(), self.user1)
