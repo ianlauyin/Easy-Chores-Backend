@@ -17,8 +17,7 @@ urlpatterns = [
     path('groceries/<int:grocery_id>/photos', add_grocery_photo),
     path('groceries/photos/<int:photo_id>', delete_grocery_photo),
     path('chores', ChoreViews.as_view()),
-    path('chores/<int:chore_id>/', ChoreViews.as_view()),
-    path('chores/<int:chore_id>/groups/<int:group_id>', ChoreViews.as_view())
+    path('chores/<int:chore_id>', ChoreViews.as_view())
 ]
 
 if settings.DEBUG:

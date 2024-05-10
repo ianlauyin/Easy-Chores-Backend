@@ -157,9 +157,9 @@ class GroceryTestCase(TestCase):
 
     def test_grocery_view_put(self):
         update_data = {
-            'name': "Updated Test Grocery",
-            "detail": "Updated Test Detail",
-            "quantity": 5
+            'name': 'Updated Test Grocery',
+            'detail': 'Updated Test Detail',
+            'quantity': 5
         }
         response = self.client.put(
             f'/groceries/{self.grocery.id}', json.dumps(update_data), content_type='application/json')
@@ -171,7 +171,7 @@ class GroceryTestCase(TestCase):
 
     def test_grocery_view_put_only_name(self):
         update_data = {
-            'name': "Updated Test Grocery",
+            'name': 'Updated Test Grocery',
         }
         response = self.client.put(
             f'/groceries/{self.grocery.id}', json.dumps(update_data), content_type='application/json')
@@ -181,9 +181,35 @@ class GroceryTestCase(TestCase):
         self.assertEqual(self.grocery.detail, '')
         self.assertEqual(self.grocery.quantity, 1)
 
+    def test_grocery_view_put_wrong_type_quantity(self):
+        update_data = {
+            'name': 'Updated Test Grocery',
+            'quantity': 'five'
+        }
+        response = self.client.put(
+            f'/groceries/{self.grocery.id}', json.dumps(update_data), content_type='application/json')
+        self.assertEqual(response.status_code, 400)
+
+    def test_grocery_view_put_wrong_type_name(self):
+        update_data = {
+            'name': 1234
+        }
+        response = self.client.put(
+            f'/groceries/{self.grocery.id}', json.dumps(update_data), content_type='application/json')
+        self.assertEqual(response.status_code, 400)
+
+    def test_grocery_view_put_wrong_type_detail(self):
+        update_data = {
+            'name': 'Updated Test Grocery',
+            'detail': 1234,
+        }
+        response = self.client.put(
+            f'/groceries/{self.grocery.id}', json.dumps(update_data), content_type='application/json')
+        self.assertEqual(response.status_code, 400)
+
     def test_grocery_view_put_wrong_key(self):
         update_data = {
-            "test": "test"
+            'test': 'test'
         }
         response = self.client.put(
             f'/groceries/{self.grocery.id}', json.dumps(update_data), content_type='application/json')
@@ -191,9 +217,9 @@ class GroceryTestCase(TestCase):
 
     def test_grocery_view_put_invalid_id(self):
         update_data = {
-            'name': "Updated Test Grocery",
-            "detail": "Updated Test Detail",
-            "quantity": 5
+            'name': 'Updated Test Grocery',
+            'detail': 'Updated Test Detail',
+            'quantity': 5
         }
         response = self.client.put(
             f'/groceries/0', json.dumps(update_data), content_type='application/json')

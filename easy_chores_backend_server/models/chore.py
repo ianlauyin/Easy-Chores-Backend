@@ -8,7 +8,7 @@ class Chore(models.Model):
     assigned_users = models.ManyToManyField(
         User, related_name='chores')
     title = models.CharField(max_length=100)
-    detail = models.TextField(max_length=500)
+    detail = models.TextField(max_length=500, default="")
     completed_date = models.DateField(null=True)
     created_at = models.DateField(auto_now_add=True)
 

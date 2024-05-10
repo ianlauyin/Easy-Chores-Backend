@@ -42,10 +42,10 @@ class GroceryViews(View):
                 'group': group,
                 'name': data['name'],
             }
-            if 'quantity' in data:
-                new_grocery_data['quantity'] = data['quantity']
-            if 'detail' in data:
-                new_grocery_data['detail'] = data['detail']
+            optional_keys = ['quantity', 'detail']
+            for key in optional_keys:
+                if key in data:
+                    new_grocery_data[key] = data[key]
             new_grocery = Grocery.objects.create(**new_grocery_data)
             return JsonResponse({'grocery_id': new_grocery.id})
         except json.JSONDecodeError:
@@ -66,12 +66,20 @@ class GroceryViews(View):
         try:
             grocery = Grocery.objects.get(id=grocery_id)
             data = json.loads(request.body)
-            editable_list = ['name', 'detail', 'quantity']
+            editable_str_list = ['name', 'detail']
             not_changed = True
-            for key in editable_list:
+            for key in editable_str_list:
                 if key in data:
+                    if not isinstance(data[key], str):
+                        raise TypeError(
+                            f'Required string type of key: {key}')
                     not_changed = False
                     setattr(grocery, key, data[key])
+            if 'quantity' in data:
+                if not isinstance(data['quantity'], int):
+                    raise TypeError(f'Required int type of key: quantity')
+                not_changed = False
+                setattr(grocery, 'quantity', data['quantity'])
             if not_changed:
                 raise ValueError(
                     'Must have at least one key: name, detail, quantity')
@@ -81,7 +89,7 @@ class GroceryViews(View):
             return HttpResponseBadRequest('Required JSON body data')
         except Grocery.DoesNotExist:
             return HttpResponseBadRequest('Invalid Grocery Id')
-        except ValueError as e:
+        except (ValueError, TypeError) as e:
             return HttpResponseBadRequest(str(e))
         except:
             return HttpResponseServerError('Error is occured. Please try again later')

@@ -99,7 +99,7 @@ class GroupTestCase(TestCase):
 
     def test_create_group_extra_key(self):
         new_group_data = {'user_id': self.user1.id,
-                          'name': 'New Group', "extra": "Extra key"}
+                          'name': 'New Group', 'extra': 'Extra key'}
         response = self.client.post(
             '/groups', json.dumps(new_group_data), content_type='application/json')
         self.assertEqual(response.status_code, 200)
