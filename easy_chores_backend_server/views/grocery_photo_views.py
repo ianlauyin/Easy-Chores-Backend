@@ -1,12 +1,12 @@
 
-from django.http import HttpResponseBadRequest, HttpResponse, JsonResponse, HttpResponseServerError
+from django.http import HttpResponseBadRequest, HttpResponse, JsonResponse, HttpResponseServerError, HttpResponseNotFound, HttpRequest
 from django.views.decorators.http import require_http_methods
 from ..models import GroceryPhoto, Grocery
 import os
 
 
 @require_http_methods(['DELETE'])
-def delete_grocery_photo(request, photo_id):
+def delete_grocery_photo(_, photo_id):
     """
     Delete a photo from db and media
     """
@@ -15,15 +15,15 @@ def delete_grocery_photo(request, photo_id):
         if os.path.exists(photo.photo.path):
             os.remove(photo.photo.path)
         photo.delete()
-        return HttpResponse()
+        return HttpResponse(status=204)
     except GroceryPhoto.DoesNotExist:
-        return HttpResponseBadRequest('Invalid photo id')
+        return HttpResponseNotFound('Invalid photo id')
     except:
         return HttpResponseServerError('Error is occured. Please try again later')
 
 
 @require_http_methods(["POST"])
-def add_grocery_photo(request, grocery_id):
+def add_grocery_photo(request: HttpRequest, grocery_id: int):
     """
     Add a photo to grocery
     """
@@ -43,7 +43,7 @@ def add_grocery_photo(request, grocery_id):
                               'path': grocery_photo.photo.path}
         return JsonResponse(grocery_photo_data)
     except Grocery.DoesNotExist:
-        return HttpResponseBadRequest('Invalid grocery id')
+        return HttpResponseNotFound('Invalid grocery id')
     except ValueError as e:
         return HttpResponseBadRequest(str(e))
     except:

@@ -2,14 +2,14 @@ from django.views import View
 from ..models import Chore
 from django.contrib.auth.models import Group, User
 from django.views.decorators.http import require_http_methods
-from django.http import HttpResponseBadRequest, JsonResponse, HttpResponseServerError, HttpResponse
+from django.http import HttpResponseBadRequest, JsonResponse, HttpResponseServerError, HttpResponseNotFound, HttpResponse, HttpRequest
 from django.forms import model_to_dict
 import json
 import datetime
 
 
 class ChoreViews(View):
-    def get(self, _, chore_id):
+    def get(self, _, chore_id: int):
         """
         Get Chore Detail with assigned users name and id
         """
@@ -20,16 +20,16 @@ class ChoreViews(View):
                 {'id': assigned_user.id, 'username': assigned_user.username} for assigned_user in chore_data['assigned_users']]
             return JsonResponse(chore_data, safe=False)
         except Chore.DoesNotExist:
-            return HttpResponseBadRequest('Invalid chore id')
+            return HttpResponseNotFound('Invalid chore id')
         except:
             return HttpResponseServerError('Error is occured. Please try again later')
 
-    def post(self, request):
+    def post(self, request: HttpRequest):
         """
         Create Chore item
         """
         try:
-            data = json.loads(request.body)
+            data: dict[str] = json.loads(request.body)
             check_keys = ['group_id', 'title']
             missing_keys = [key for key in check_keys if key not in data]
             if len(missing_keys) > 0:
@@ -39,23 +39,23 @@ class ChoreViews(View):
             if 'detail' in data:
                 new_chore_data['detail'] = data['detail']
             new_chore = Chore.objects.create(group=group, **new_chore_data)
-            return JsonResponse({'id': new_chore.id})
+            return JsonResponse({'id': new_chore.id}, status=201)
         except json.JSONDecodeError:
             return HttpResponseBadRequest('Required JSON body data')
-        except Group.DoesNotExist:
-            return HttpResponseBadRequest('Invalid Group Id')
         except ValueError as e:
             return HttpResponseBadRequest(f'Missing Required body:{e}')
+        except Group.DoesNotExist:
+            return HttpResponseNotFound('Invalid Group Id')
         except:
             return HttpResponseServerError('Error is occured. Please try again later')
 
-    def put(self, request, chore_id):
+    def put(self, request: HttpRequest, chore_id: int):
         """
         Update Chore Detail
         """
         try:
             chore = Chore.objects.get(id=chore_id)
-            data = json.loads(request.body)
+            data: dict[str] = json.loads(request.body)
             editable_str_list = ['title', 'detail', 'completed_date']
             not_changed = True
             for key in editable_str_list:
@@ -74,35 +74,35 @@ class ChoreViews(View):
                 raise ValueError(
                     'Must have at least one key: title, detail, completed_date')
             chore.save()
-            return HttpResponse()
+            return HttpResponse(status=204)
         except json.JSONDecodeError:
             return HttpResponseBadRequest('Required JSON body data')
-        except Chore.DoesNotExist:
-            return HttpResponseBadRequest('Invalid chore Id')
         except (ValueError, TypeError)as e:
             return HttpResponseBadRequest(str(e))
+        except Chore.DoesNotExist:
+            return HttpResponseNotFound('Invalid chore Id')
         except:
             return HttpResponseServerError('Error is occured. Please try again later')
 
-    def delete(self, _, chore_id):
+    def delete(self, _, chore_id: int):
         """
         Delete Chore Item
         """
         try:
             chore = Chore.objects.get(id=chore_id)
             chore.delete()
-            return HttpResponse()
+            return HttpResponse(status=204)
         except Chore.DoesNotExist:
-            return HttpResponseBadRequest('Invalid chore Id')
+            return HttpResponseNotFound('Invalid chore Id')
         except:
             return HttpResponseServerError('Error is occured. Please try again later')
 
 
 @require_http_methods(['PUT'])
-def rearrange_chores_assigned_users(request, chore_id):
+def rearrange_chores_assigned_users(request: HttpRequest, chore_id: int):
     try:
         chore = Chore.objects.get(id=chore_id)
-        data: dict = json.loads(request.body)
+        data: dict[str] = json.loads(request.body)
         if 'user_ids' not in data:
             raise ValueError('Require key: user_ids:list[int]')
         if not isinstance(data['user_ids'], list):
@@ -112,10 +112,10 @@ def rearrange_chores_assigned_users(request, chore_id):
                 raise TypeError('Wrong Type of user_id, need int')
         new_assigned_users = User.objects.filter(id__in=data['user_ids'])
         chore.assigned_users.set(new_assigned_users)
-        return HttpResponse()
-    except Chore.DoesNotExist:
-        return HttpResponseBadRequest('Invalid chore id')
+        return HttpResponse(status=204)
     except (ValueError, TypeError) as e:
         return HttpResponseBadRequest(str(e))
+    except Chore.DoesNotExist:
+        return HttpResponseNotFound('Invalid chore id')
     except:
         return HttpResponseServerError('Error is occured. Please try again later')

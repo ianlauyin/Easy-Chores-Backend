@@ -18,6 +18,6 @@ from django.contrib import admin
 from django.urls import path, include
 
 urlpatterns = [
-    path('', include('easy_chores_backend_server.urls')),
     path('admin/', admin.site.urls),
+    path('', include('easy_chores_backend_server.urls')),
 ]

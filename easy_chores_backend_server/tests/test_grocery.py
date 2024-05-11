@@ -35,7 +35,7 @@ class GroceryTestCase(TestCase):
     def test_grocery_view_get(self):
         response = self.client.get(f'/groceries/{self.grocery.id}')
         self.assertIsInstance(response, JsonResponse)
-        response_data = json.loads(response.content)
+        response_data:dict[str] = json.loads(response.content)
         self.assertDictEqual(
             response_data['grocery'], model_to_dict(self.grocery))
         self.assertIn(self.photo1.photo.url, response_data['photos'])
@@ -46,14 +46,14 @@ class GroceryTestCase(TestCase):
             creator=self.user1, group=self.test_group, name='New Test Grocery')
         response = self.client.get(f'/groceries/{new_grocery.id}')
         self.assertIsInstance(response, JsonResponse)
-        response_data = json.loads(response.content)
+        response_data :dict[str]= json.loads(response.content)
         self.assertDictEqual(
             response_data['grocery'], model_to_dict(new_grocery))
         self.assertListEqual(response_data['photos'], [])
 
     def test_grocery_view_get_invalid_id(self):
         response = self.client.get(f'/groceries/0')
-        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.status_code, 404)
 
     def test_grocery_view_post(self):
         new_grocery_data = {
@@ -67,9 +67,9 @@ class GroceryTestCase(TestCase):
             content_type='application/json',
         )
         self.assertIsInstance(response, JsonResponse)
-        response_data = json.loads(response.content)
+        response_data:dict[str] = json.loads(response.content)
         self.assertTrue('grocery_id' in response_data)
-        grocery_id = response_data['grocery_id']
+        grocery_id:int = response_data['grocery_id']
 
         grocery = Grocery.objects.get(id=grocery_id)
         self.assertEqual(grocery.creator, self.user1)
@@ -87,9 +87,9 @@ class GroceryTestCase(TestCase):
         response = self.client.post('/groceries', json.dumps(new_grocery_data),
                                     content_type='application/json')
         self.assertIsInstance(response, JsonResponse)
-        response_data = json.loads(response.content)
+        response_data:dict[str] = json.loads(response.content)
         self.assertTrue('grocery_id' in response_data)
-        grocery_id = response_data['grocery_id']
+        grocery_id:int = response_data['grocery_id']
 
         grocery = Grocery.objects.get(id=grocery_id)
         self.assertEqual(grocery.creator, self.user1)
@@ -107,9 +107,9 @@ class GroceryTestCase(TestCase):
         response = self.client.post('/groceries', json.dumps(new_grocery_data),
                                     content_type='application/json')
         self.assertIsInstance(response, JsonResponse)
-        response_data = json.loads(response.content)
+        response_data:dict[str] = json.loads(response.content)
         self.assertTrue('grocery_id' in response_data)
-        grocery_id = response_data['grocery_id']
+        grocery_id:int = response_data['grocery_id']
 
         grocery = Grocery.objects.get(id=grocery_id)
         self.assertEqual(grocery.creator, self.user1)
@@ -125,7 +125,7 @@ class GroceryTestCase(TestCase):
         }
         response = self.client.post('/groceries', json.dumps(new_grocery_data),
                                     content_type='application/json')
-        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.status_code, 404)
 
     def test_grocery_view_post_invalid_user(self):
         new_grocery_data = {
@@ -135,7 +135,7 @@ class GroceryTestCase(TestCase):
         }
         response = self.client.post('/groceries', json.dumps(new_grocery_data),
                                     content_type='application/json')
-        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.status_code, 404)
 
     def test_grocery_view_post_missing_group(self):
         new_grocery_data = {
@@ -163,7 +163,7 @@ class GroceryTestCase(TestCase):
         }
         response = self.client.put(
             f'/groceries/{self.grocery.id}', json.dumps(update_data), content_type='application/json')
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 204)
         self.grocery.refresh_from_db()
         self.assertEqual(self.grocery.name, 'Updated Test Grocery')
         self.assertEqual(self.grocery.detail, 'Updated Test Detail')
@@ -175,7 +175,7 @@ class GroceryTestCase(TestCase):
         }
         response = self.client.put(
             f'/groceries/{self.grocery.id}', json.dumps(update_data), content_type='application/json')
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 204)
         self.grocery.refresh_from_db()
         self.assertEqual(self.grocery.name, 'Updated Test Grocery')
         self.assertEqual(self.grocery.detail, '')
@@ -223,11 +223,11 @@ class GroceryTestCase(TestCase):
         }
         response = self.client.put(
             f'/groceries/0', json.dumps(update_data), content_type='application/json')
-        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.status_code, 404)
 
     def test_grocery_view_delete(self):
         response = self.client.delete(f'/groceries/{self.grocery.id}')
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 204)
         self.assertFalse(GroceryPhoto.objects.filter(
             id=self.photo1.id).exists())
         self.assertFalse(GroceryPhoto.objects.filter(
@@ -238,4 +238,4 @@ class GroceryTestCase(TestCase):
 
     def test_grocery_view_delete_invalid_id(self):
         response = self.client.delete(f'/groceries/0')
-        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.status_code, 404)

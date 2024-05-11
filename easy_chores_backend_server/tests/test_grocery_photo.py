@@ -2,6 +2,7 @@ from django.test import TestCase, Client
 from django.http import HttpRequest, JsonResponse
 from django.contrib.auth.models import Group, User
 from django.core.files import File
+from django.db.models.query import QuerySet
 from ..models.grocery import Grocery
 from ..models.grocery_photo import GroceryPhoto
 import os
@@ -33,7 +34,7 @@ class GroceryPhotoTestCase(TestCase):
             response = self.client.post(
                 f'/groceries/{self.grocery.id}/photos', {'photo': test_photo})
         self.assertIsInstance(response, JsonResponse)
-        response_data = json.loads(response.content)
+        response_data: dict[str] = json.loads(response.content)
         self.assertTrue('id' in response_data)
         self.assertTrue('url' in response_data)
         self.assertTrue('path' in response_data)
@@ -46,7 +47,7 @@ class GroceryPhotoTestCase(TestCase):
         with open('./easy_chores_backend_server/tests/test_image2.jpeg', 'rb') as test_photo:
             response = self.client.post(
                 '/groceries/0/photos', {'photo': test_photo})
-        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.status_code, 404)
         self.assertEqual(self.grocery.grocery_photos.count(), 1)
         self.assertEqual(GroceryPhoto.objects.count(), 1)
 
@@ -60,7 +61,7 @@ class GroceryPhotoTestCase(TestCase):
 
     def test_grocery_photo_views_delete(self):
         response = self.client.delete(f'/groceries/photos/{self.photo1.id}')
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 204)
         self.assertEqual(self.grocery.grocery_photos.count(), 0)
         self.assertFalse(os.path.exists(self.photo1.photo.path))
         self.assertFalse(GroceryPhoto.objects.filter(
@@ -68,7 +69,7 @@ class GroceryPhotoTestCase(TestCase):
 
     def test_grocery_photo_views_delete_invalid_id(self):
         response = self.client.delete(f'/groceries/photos/0')
-        self.assertEqual(response.status_code, 400)
-        grocery_photos = self.grocery.grocery_photos.all()
+        self.assertEqual(response.status_code, 404)
+        grocery_photos: QuerySet = self.grocery.grocery_photos.all()
         self.assertIn(self.photo1, grocery_photos)
         self.assertTrue(os.path.exists(self.photo1.photo.path))

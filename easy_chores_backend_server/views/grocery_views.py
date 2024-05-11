@@ -1,8 +1,9 @@
 from django.views import View
 from django.contrib.auth.models import Group, User
-from django.http import JsonResponse, HttpResponseBadRequest, HttpResponse, HttpResponseServerError
+from django.http import JsonResponse, HttpResponseBadRequest, HttpResponse, HttpResponseServerError, HttpResponseNotFound, HttpRequest
 from django.forms.models import model_to_dict
 from django.db import transaction
+from django.db.models.query import QuerySet
 from ..models import Grocery
 import json
 import os
@@ -10,27 +11,27 @@ import os
 
 class GroceryViews(View):
 
-    def get(self, _, grocery_id):
+    def get(self, _, grocery_id: int):
         """
         Get Grocery Detail with Photos
         """
         try:
             grocery = Grocery.objects.get(id=grocery_id)
-            grocery_photos = grocery.grocery_photos.all()
+            grocery_photos: QuerySet = grocery.grocery_photos.all()
             grocery_data = {'grocery': model_to_dict(grocery), 'photos': [
                 grocery_photo.photo.url for grocery_photo in grocery_photos]}
             return JsonResponse(grocery_data)
         except Grocery.DoesNotExist:
-            return HttpResponseBadRequest('Invalid Grocery Id')
+            return HttpResponseNotFound('Invalid Grocery Id')
         except:
             return HttpResponseServerError('Error is occured. Please try again later')
 
-    def post(self, request):
+    def post(self, request: HttpRequest):
         """
         Create Grocery item
         """
         try:
-            data = json.loads(request.body)
+            data: dict[str] = json.loads(request.body)
             check_keys = ['user_id', 'group_id', 'name']
             missing_keys = [key for key in check_keys if key not in data]
             if len(missing_keys) > 0:
@@ -47,25 +48,25 @@ class GroceryViews(View):
                 if key in data:
                     new_grocery_data[key] = data[key]
             new_grocery = Grocery.objects.create(**new_grocery_data)
-            return JsonResponse({'grocery_id': new_grocery.id})
+            return JsonResponse({'grocery_id': new_grocery.id}, status=201)
         except json.JSONDecodeError:
             return HttpResponseBadRequest('Required JSON body data')
         except Group.DoesNotExist:
-            return HttpResponseBadRequest('Invalid Group Id')
+            return HttpResponseNotFound('Invalid Group Id')
         except User.DoesNotExist:
-            return HttpResponseBadRequest('Invalid User Id')
+            return HttpResponseNotFound('Invalid User Id')
         except ValueError as e:
             return HttpResponseBadRequest(f'Missing Required body:{e}')
         except:
             return HttpResponseServerError('Error is occured. Please try again later')
 
-    def put(self, request, grocery_id):
+    def put(self, request: HttpRequest, grocery_id: int):
         """
         Update Grocery Detail
         """
         try:
             grocery = Grocery.objects.get(id=grocery_id)
-            data = json.loads(request.body)
+            data: dict[str] = json.loads(request.body)
             editable_str_list = ['name', 'detail']
             not_changed = True
             for key in editable_str_list:
@@ -84,17 +85,17 @@ class GroceryViews(View):
                 raise ValueError(
                     'Must have at least one key: name, detail, quantity')
             grocery.save()
-            return HttpResponse()
+            return HttpResponse(status=204)
         except json.JSONDecodeError:
             return HttpResponseBadRequest('Required JSON body data')
         except Grocery.DoesNotExist:
-            return HttpResponseBadRequest('Invalid Grocery Id')
+            return HttpResponseNotFound('Invalid Grocery Id')
         except (ValueError, TypeError) as e:
             return HttpResponseBadRequest(str(e))
         except:
             return HttpResponseServerError('Error is occured. Please try again later')
 
-    def delete(self, _, grocery_id):
+    def delete(self, _, grocery_id: int):
         """
         Delete Grocery Item along with photos
         """
@@ -107,8 +108,8 @@ class GroceryViews(View):
                         os.remove(grocery_photo.photo.path)
                     grocery_photo.delete()
                 grocery.delete()
-                return HttpResponse()
+                return HttpResponse(status=204)
         except Grocery.DoesNotExist:
-            return HttpResponseBadRequest('Invalid Grocery Id')
+            return HttpResponseNotFound('Invalid Grocery Id')
         except:
             return HttpResponseServerError('Error is occured. Please try again later')
