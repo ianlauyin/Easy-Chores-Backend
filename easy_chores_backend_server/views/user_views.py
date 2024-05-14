@@ -1,7 +1,23 @@
 import json
-from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseServerError
+from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseServerError, JsonResponse, HttpResponseNotFound
 from django.views import View
 from django.core.exceptions import ValidationError
+from django.contrib.auth.models import Group, User
+
+
+class UserGroupViews(View):
+    def get(self, _, user_id):
+        """
+        Get Groups of a user
+        """
+        try:
+            user = User.objects.get(id=user_id)
+            groups = user.groups.all().values()
+            return JsonResponse(list(groups), safe=False)
+        except Group.DoesNotExist:
+            return HttpResponseNotFound('Invalid Group Id')
+        except:
+            return HttpResponseServerError('Error is occured. Please try again later')
 
 
 class UserViews(View):
