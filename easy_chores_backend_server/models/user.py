@@ -1,6 +1,8 @@
 from django.contrib.auth.models import AbstractUser, PermissionsMixin
 from django.db import models
 from django.contrib.auth.hashers import check_password
+import jwt
+import os
 
 
 class User(AbstractUser, PermissionsMixin):
@@ -18,6 +20,13 @@ class User(AbstractUser, PermissionsMixin):
     )
 
     USERNAME_FIELD = 'email'
+
+    def generate_access_token(self):
+        data = {
+            'user_id': self.id
+        }
+        token = jwt.encode(data, os.getenv('TOKEN_SECRET'), algorithm='HS256')
+        return token
 
     def check_password(self, raw_password):
         return check_password(raw_password, self.password)

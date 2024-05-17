@@ -4,6 +4,7 @@ from django.http import HttpResponseBadRequest, JsonResponse, HttpResponseServer
 from django.db import transaction
 from ..models import User
 import json
+import os
 
 
 @require_POST
@@ -15,11 +16,10 @@ def register(request):
             missing_keys = [key for key in check_keys if key not in data]
             if len(missing_keys) > 0:
                 raise ValueError(', '.join(missing_keys))
-            print("Hi1")
             user = User.objects.create_user(
                 username=data['username'], email=data['email'], password=data['password'])
-            print("Hi2")
-            return JsonResponse({'access_token': ""})
+            access_token = user.generate_access_token()
+            return JsonResponse({'access_token': access_token})
     except json.JSONDecodeError:
         return HttpResponseBadRequest('Required JSON body data')
     except ValueError as e:
@@ -39,7 +39,9 @@ def login(request):
         user = User.objects.get(email=data['email'])
         if not user.check_password(data['password']):
             raise AssertionError()
-        return JsonResponse({'access_token': ""})
+        access_token = user.generate_access_token()
+        print(access_token)
+        return JsonResponse({'access_token': access_token})
     except json.JSONDecodeError:
         return HttpResponseBadRequest('Required JSON body data')
     except ValueError as e:
