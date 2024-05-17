@@ -1,6 +1,6 @@
 from django.views import View
-from ..models import Chore
-from django.contrib.auth.models import Group, User
+from ..models import Chore, User
+from django.contrib.auth.models import Group
 from django.views.decorators.http import require_http_methods
 from django.http import HttpResponseBadRequest, JsonResponse, HttpResponseServerError, HttpResponseNotFound, HttpResponse, HttpRequest
 from django.forms import model_to_dict
@@ -56,7 +56,7 @@ class ChoreViews(View):
         try:
             chore = Chore.objects.get(id=chore_id)
             data: dict[str] = json.loads(request.body)
-            editable_str_list = ['title', 'detail', 'completed_date']
+            editable_str_list = ['title', 'detail']
             not_changed = True
             for key in editable_str_list:
                 if key in data:
@@ -68,7 +68,7 @@ class ChoreViews(View):
             if 'completed_date' in data:
                 not_changed = False
                 completed_date = datetime.datetime.strptime(
-                    data['completed_date'], '%Y-%m-%dT%H:%M:%S.%f').date()
+                    data['completed_date'], '%Y-%m-%d').date()
                 setattr(chore, 'completed_date', completed_date)
             if not_changed:
                 raise ValueError(

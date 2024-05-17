@@ -2,7 +2,8 @@ import json
 from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseServerError, JsonResponse, HttpResponseNotFound
 from django.views import View
 from django.core.exceptions import ValidationError
-from django.contrib.auth.models import Group, User
+from django.contrib.auth.models import Group
+from ..models import User
 
 
 class UserGroupViews(View):
@@ -14,6 +15,8 @@ class UserGroupViews(View):
             user = User.objects.get(id=user_id)
             groups = user.groups.all().values()
             return JsonResponse(list(groups), safe=False)
+        except User.DoesNotExist:
+            return HttpResponseNotFound('Invalid UserId')
         except Group.DoesNotExist:
             return HttpResponseNotFound('Invalid Group Id')
         except:

@@ -1,10 +1,9 @@
 from django.test import TestCase, Client
 from django.http import HttpRequest, JsonResponse
-from django.contrib.auth.models import Group, User
+from django.contrib.auth.models import Group
 from django.core.files import File
 from django.db.models.query import QuerySet
-from ..models.grocery import Grocery
-from ..models.grocery_photo import GroceryPhoto
+from ..models import Grocery, GroceryPhoto, User
 import os
 import json
 
@@ -14,7 +13,8 @@ class GroceryPhotoTestCase(TestCase):
         self.request = HttpRequest()
         self.client = Client()
         self.test_group = Group.objects.create(name='Test Group')
-        self.user1 = User.objects.create(username='user1')
+        self.user1 = User.objects.create(
+            username='user1', email='user1@email.com')
         self.grocery = Grocery.objects.create(
             creator=self.user1, group=self.test_group, name='Test Grocery')
         with open('./easy_chores_backend_server/tests/test_image.png', 'rb') as test_photo:

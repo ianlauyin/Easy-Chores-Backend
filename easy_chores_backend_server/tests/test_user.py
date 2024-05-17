@@ -1,6 +1,6 @@
 from django.test import TestCase, Client
 from django.http import JsonResponse, HttpRequest
-from django.contrib.auth.models import User
+from ..models import User
 import json
 
 
@@ -8,7 +8,8 @@ class UserTestCase(TestCase):
     def setUp(self):
         self.request = HttpRequest()
         self.client = Client()
-        self.user1 = User.objects.create(username='user1', password='1234')
+        self.user1 = User.objects.create(
+            username='user1', password='1234', email='user1@email.com')
         self.group1 = self.user1.groups.create(name="Group1")
         self.group2 = self.user1.groups.create(name="Group2")
 

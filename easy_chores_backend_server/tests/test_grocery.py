@@ -1,10 +1,9 @@
 from django.test import TestCase, Client
 from django.http import JsonResponse, HttpRequest
-from django.contrib.auth.models import Group, User
+from django.contrib.auth.models import Group
 from django.forms.models import model_to_dict
 from django.core.files import File
-from ..models.grocery import Grocery
-from ..models.grocery_photo import GroceryPhoto
+from ..models import Grocery, GroceryPhoto, User
 import json
 import os
 
@@ -14,7 +13,8 @@ class GroceryTestCase(TestCase):
         self.request = HttpRequest()
         self.client = Client()
         self.test_group = Group.objects.create(name='Test Group')
-        self.user1 = User.objects.create(username='user1')
+        self.user1 = User.objects.create(
+            username='user1', email='user1@email.com')
         self.grocery = Grocery.objects.create(
             creator=self.user1, group=self.test_group, name='Test Grocery')
         with open('./easy_chores_backend_server/tests/test_image.png', 'rb') as test_photo:
@@ -35,7 +35,7 @@ class GroceryTestCase(TestCase):
     def test_grocery_view_get(self):
         response = self.client.get(f'/groceries/{self.grocery.id}')
         self.assertIsInstance(response, JsonResponse)
-        response_data:dict[str] = json.loads(response.content)
+        response_data: dict[str] = json.loads(response.content)
         self.assertDictEqual(
             response_data['grocery'], model_to_dict(self.grocery))
         self.assertIn(self.photo1.photo.url, response_data['photos'])
@@ -46,7 +46,7 @@ class GroceryTestCase(TestCase):
             creator=self.user1, group=self.test_group, name='New Test Grocery')
         response = self.client.get(f'/groceries/{new_grocery.id}')
         self.assertIsInstance(response, JsonResponse)
-        response_data :dict[str]= json.loads(response.content)
+        response_data: dict[str] = json.loads(response.content)
         self.assertDictEqual(
             response_data['grocery'], model_to_dict(new_grocery))
         self.assertListEqual(response_data['photos'], [])
@@ -67,9 +67,9 @@ class GroceryTestCase(TestCase):
             content_type='application/json',
         )
         self.assertIsInstance(response, JsonResponse)
-        response_data:dict[str] = json.loads(response.content)
+        response_data: dict[str] = json.loads(response.content)
         self.assertTrue('grocery_id' in response_data)
-        grocery_id:int = response_data['grocery_id']
+        grocery_id: int = response_data['grocery_id']
 
         grocery = Grocery.objects.get(id=grocery_id)
         self.assertEqual(grocery.creator, self.user1)
@@ -87,9 +87,9 @@ class GroceryTestCase(TestCase):
         response = self.client.post('/groceries', json.dumps(new_grocery_data),
                                     content_type='application/json')
         self.assertIsInstance(response, JsonResponse)
-        response_data:dict[str] = json.loads(response.content)
+        response_data: dict[str] = json.loads(response.content)
         self.assertTrue('grocery_id' in response_data)
-        grocery_id:int = response_data['grocery_id']
+        grocery_id: int = response_data['grocery_id']
 
         grocery = Grocery.objects.get(id=grocery_id)
         self.assertEqual(grocery.creator, self.user1)
@@ -107,9 +107,9 @@ class GroceryTestCase(TestCase):
         response = self.client.post('/groceries', json.dumps(new_grocery_data),
                                     content_type='application/json')
         self.assertIsInstance(response, JsonResponse)
-        response_data:dict[str] = json.loads(response.content)
+        response_data: dict[str] = json.loads(response.content)
         self.assertTrue('grocery_id' in response_data)
-        grocery_id:int = response_data['grocery_id']
+        grocery_id: int = response_data['grocery_id']
 
         grocery = Grocery.objects.get(id=grocery_id)
         self.assertEqual(grocery.creator, self.user1)

@@ -1,5 +1,6 @@
 from django.http import HttpResponseBadRequest, JsonResponse, HttpResponse, HttpResponseServerError, HttpResponseNotFound, HttpRequest
-from django.contrib.auth.models import Group, User
+from django.contrib.auth.models import Group
+from ..models import User
 from django.contrib.postgres.aggregates import ArrayAgg
 from django.db.models.query import QuerySet
 from django.views.decorators.http import require_GET, require_POST
@@ -21,7 +22,7 @@ class GroupUserViews(View):
         """
         try:
             group = self.__get_group(group_id)
-            users = group.user_set.all().values('id', 'username')
+            users = group.custom_user_set.all().values('id', 'username')
             return JsonResponse(list(users), safe=False)
         except Group.DoesNotExist:
             return HttpResponseNotFound('Invalid Group Id')
@@ -35,10 +36,10 @@ class GroupUserViews(View):
         try:
             group = self.__get_group(group_id)
             user = self.__get_user(user_id)
-            if user in group.user_set.all():
+            if user in group.custom_user_set.all():
                 raise ValueError(
                     f'User Id ({user_id}) already in Group Id ({group_id})')
-            group.user_set.add(user)
+            group.custom_user_set.add(user)
             return HttpResponse(status=204)
         except Group.DoesNotExist:
             return HttpResponseNotFound('Invalid Group Id')
@@ -56,10 +57,10 @@ class GroupUserViews(View):
         try:
             group = self.__get_group(group_id)
             user = self.__get_user(user_id)
-            if user not in group.user_set.all():
+            if user not in group.custom_user_set.all():
                 raise ValueError(
                     f'User Id ({user_id}) is not in Group Id ({group_id})')
-            group.user_set.remove(user)
+            group.custom_user_set.remove(user)
             return HttpResponse(status=204)
         except Group.DoesNotExist:
             return HttpResponseNotFound('Invalid Group Id')
@@ -82,7 +83,7 @@ def create_group(request: HttpRequest):
                 raise ValueError('name')
             new_group = Group.objects.create(name=data['name'])
             user = User.objects.get(id=data['user_id'])
-            new_group.user_set.add(user)
+            new_group.custom_user_set.add(user)
             return JsonResponse({"group_id": new_group.id})
     except json.JSONDecodeError:
         return HttpResponseBadRequest("Required JSON body data")
@@ -99,7 +100,7 @@ def get_grocery_list(_, group_id: int):
     try:
         group = Group.objects.get(id=group_id)
         groceries: QuerySet = group.groceries.all().values(
-            'id', 'creator__username', 'quantity', 'created_at')
+            'id', 'name', 'creator__username', 'quantity', 'created_at')
 
         return JsonResponse(list(groceries), safe=False)
     except Group.DoesNotExist:
@@ -112,7 +113,7 @@ def get_grocery_list(_, group_id: int):
 def get_chore_list(_, group_id: int):
     try:
         group = Group.objects.get(id=group_id)
-        chores: QuerySet = group.chores.filter(completed_date=None).values('id', 'title').annotate(
+        chores: QuerySet = group.chores.filter(completed_date=None).values('id', 'title', 'created_at').annotate(
             assigned_users=ArrayAgg('assigned_users__username'))
         return JsonResponse(list(chores), safe=False)
     except Group.DoesNotExist:

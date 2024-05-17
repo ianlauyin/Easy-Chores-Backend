@@ -1,10 +1,10 @@
 from django.views import View
-from django.contrib.auth.models import Group, User
+from django.contrib.auth.models import Group
 from django.http import JsonResponse, HttpResponseBadRequest, HttpResponse, HttpResponseServerError, HttpResponseNotFound, HttpRequest
 from django.forms.models import model_to_dict
 from django.db import transaction
 from django.db.models.query import QuerySet
-from ..models import Grocery
+from ..models import Grocery, User
 import json
 import os
 

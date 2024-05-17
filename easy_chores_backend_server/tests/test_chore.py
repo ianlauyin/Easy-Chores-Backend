@@ -1,7 +1,7 @@
 from django.test import TestCase, Client
 from django.http import JsonResponse, HttpRequest
-from django.contrib.auth.models import Group, User
-from ..models import Chore
+from django.contrib.auth.models import Group
+from ..models import Chore, User
 import json
 import datetime
 
@@ -12,7 +12,8 @@ class ChoreTestCase(TestCase):
         self.client = Client()
         self.group = Group.objects.create(name='Test Group')
         self.chore = Chore.objects.create(group=self.group, title='Test title')
-        self.user1 = User.objects.create(username='user1')
+        self.user1 = User.objects.create(
+            username='user1', email='user1@email.com')
         self.chore.assigned_users.add(self.user1)
 
     def test_chore_view_get(self):
@@ -103,7 +104,7 @@ class ChoreTestCase(TestCase):
         update_data = {
             'title': 'Updated Test Chore',
             'detail': 'Updated Test Detail',
-            'completed_date': datetime.datetime.now().isoformat()
+            'completed_date': '2024-05-16'
         }
         response = self.client.put(
             f'/chores/{self.chore.id}', json.dumps(update_data), content_type='application/json')
@@ -170,7 +171,8 @@ class ChoreTestCase(TestCase):
         self.assertEqual(self.chore.assigned_users.count(), 0)
 
     def test_rearrange_chores_assigned_users_add(self):
-        new_user = User.objects.create(username='New User')
+        new_user = User.objects.create(
+            username='New User', email='newuser@email.com')
         response = self.client.put(
             f'/chores/{self.chore.id}/users', json.dumps({'user_ids': [self.user1.id, new_user.id]}), content_type='application/json')
         self.assertEqual(response.status_code, 204)
@@ -178,7 +180,8 @@ class ChoreTestCase(TestCase):
         self.assertEqual(self.chore.assigned_users.count(), 2)
 
     def test_rearrange_chores_assigned_users_changed(self):
-        new_user = User.objects.create(username='New User')
+        new_user = User.objects.create(
+            username='New User', email='newuser@email.com')
         response = self.client.put(
             f'/chores/{self.chore.id}/users', json.dumps({'user_ids': [new_user.id]}), content_type='application/json')
         self.assertEqual(response.status_code, 204)
