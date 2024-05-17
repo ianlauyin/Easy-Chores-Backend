@@ -1,6 +1,7 @@
 from django.conf.urls.static import static
 from django.conf import settings
 from django.urls import path
+from .views.auth_views import register, login
 from .views.user_views import UserGroupViews
 from .views.group_views import GroupUserViews, get_grocery_list, get_chore_list, create_group
 from .views.chore_views import ChoreViews, rearrange_chores_assigned_users
@@ -8,6 +9,8 @@ from .views.grocery_views import GroceryViews
 from .views.grocery_photo_views import delete_grocery_photo, add_grocery_photo
 
 urlpatterns = [
+    path('users/register', register),
+    path('users/login', login),
     path('users/<int:user_id>/groups', UserGroupViews.as_view()),
     path('groups', create_group),
     path('groups/<int:group_id>/groceries', get_grocery_list),

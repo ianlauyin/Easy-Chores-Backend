@@ -1,6 +1,6 @@
 from django.contrib.auth.models import AbstractUser, PermissionsMixin
 from django.db import models
-from django.contrib.auth.hashers import make_password, check_password
+from django.contrib.auth.hashers import check_password
 
 
 class User(AbstractUser, PermissionsMixin):
@@ -18,10 +18,6 @@ class User(AbstractUser, PermissionsMixin):
     )
 
     USERNAME_FIELD = 'email'
-
-    def set_password(self, raw_password):
-        self.password = make_password(raw_password)
-        super().set_password(raw_password)
 
     def check_password(self, raw_password):
         return check_password(raw_password, self.password)
