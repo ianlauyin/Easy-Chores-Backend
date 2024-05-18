@@ -7,9 +7,10 @@ import json
 class UserTestCase(TestCase):
     def setUp(self):
         self.request = HttpRequest()
-        self.client = Client()
         self.user1 = User.objects.create(
             username='user1', password='1234', email='user1@email.com')
+        self.token = self.user1.generate_access_token()
+        self.client = Client(headers={"Authorization": self.token})
         self.group1 = self.user1.groups.create(name="Group1")
         self.group2 = self.user1.groups.create(name="Group2")
 

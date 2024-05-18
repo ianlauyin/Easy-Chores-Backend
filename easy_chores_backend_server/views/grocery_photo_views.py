@@ -2,10 +2,12 @@
 from django.http import HttpResponseBadRequest, HttpResponse, JsonResponse, HttpResponseServerError, HttpResponseNotFound, HttpRequest
 from django.views.decorators.http import require_http_methods
 from ..models import GroceryPhoto, Grocery
+from ..views.auth_views import verify_token
 import os
 
 
 @require_http_methods(['DELETE'])
+@verify_token
 def delete_grocery_photo(_, photo_id):
     """
     Delete a photo from db and media
@@ -23,6 +25,7 @@ def delete_grocery_photo(_, photo_id):
 
 
 @require_http_methods(["POST"])
+@verify_token
 def add_grocery_photo(request: HttpRequest, grocery_id: int):
     """
     Add a photo to grocery

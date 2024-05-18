@@ -3,8 +3,11 @@ from django.http import HttpResponseServerError, JsonResponse, HttpResponseNotFo
 from django.views import View
 from django.contrib.auth.models import Group
 from ..models import User
+from ..views.auth_views import verify_token
+from django.utils.decorators import method_decorator
 
 
+@method_decorator(verify_token, name='dispatch')
 class UserGroupViews(View):
     def get(self, _, user_id):
         """

@@ -5,10 +5,13 @@ from django.forms.models import model_to_dict
 from django.db import transaction
 from django.db.models.query import QuerySet
 from ..models import Grocery, User
+from ..views.auth_views import verify_token
+from django.utils.decorators import method_decorator
 import json
 import os
 
 
+@method_decorator(verify_token, name='dispatch')
 class GroceryViews(View):
 
     def get(self, _, grocery_id: int):

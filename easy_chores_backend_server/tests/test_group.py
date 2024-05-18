@@ -9,10 +9,11 @@ import datetime
 class GroupTestCase(TestCase):
     def setUp(self):
         self.request = HttpRequest()
-        self.client = Client()
         self.test_group = Group.objects.create(name='Test Group')
         self.user1 = User.objects.create(
             username='user1', password='1234', email='user1@email.com')
+        self.token = self.user1.generate_access_token()
+        self.client = Client(headers={"Authorization": self.token})
         self.user2 = User.objects.create(
             username='user2', password='4321', email='user2@email.com')
         self.test_group.custom_user_set.add(self.user1, self.user2)
@@ -28,7 +29,8 @@ class GroupTestCase(TestCase):
 
     def test_group_user_get(self):
         self.test_group.custom_user_set.add(self.user1, self.user2)
-        response = self.client.get(f'/groups/{self.test_group.id}/users')
+        response = self.client.get(
+            f'/groups/{self.test_group.id}/users')
         self.assertIsInstance(response, JsonResponse)
         expected_data = [
             {
@@ -163,6 +165,7 @@ class GroupTestCase(TestCase):
         self.chore2.completed_date = datetime.datetime.now()
         self.chore2.save()
         response = self.client.get(f'/groups/{self.test_group.id}/chores')
+        self.assertIsInstance(response, JsonResponse)
         response_data: list[dict[str]] = json.loads(response.content)
         self.assertEqual(response_data[0]['id'], self.chore1.id)
         self.assertEqual(response_data[0]['title'], self.chore1.title)

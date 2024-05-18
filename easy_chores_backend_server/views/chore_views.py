@@ -4,10 +4,13 @@ from django.contrib.auth.models import Group
 from django.views.decorators.http import require_http_methods
 from django.http import HttpResponseBadRequest, JsonResponse, HttpResponseServerError, HttpResponseNotFound, HttpResponse, HttpRequest
 from django.forms import model_to_dict
+from ..views.auth_views import verify_token
+from django.utils.decorators import method_decorator
 import json
 import datetime
 
 
+@method_decorator(verify_token, name='dispatch')
 class ChoreViews(View):
     def get(self, _, chore_id: int):
         """
@@ -99,6 +102,7 @@ class ChoreViews(View):
 
 
 @require_http_methods(['PUT'])
+@verify_token
 def rearrange_chores_assigned_users(request: HttpRequest, chore_id: int):
     try:
         chore = Chore.objects.get(id=chore_id)

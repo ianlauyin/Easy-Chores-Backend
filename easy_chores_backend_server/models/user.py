@@ -1,6 +1,8 @@
 from django.contrib.auth.models import AbstractUser, PermissionsMixin
 from django.db import models
 from django.contrib.auth.hashers import check_password
+from django.core.cache import cache
+from datetime import datetime, timedelta
 import jwt
 import os
 
@@ -23,9 +25,11 @@ class User(AbstractUser, PermissionsMixin):
 
     def generate_access_token(self):
         data = {
-            'user_id': self.id
+            'user_id': self.id,
+            'expire_time': str(datetime.now() + timedelta(hours=1))
         }
         token = jwt.encode(data, os.getenv('TOKEN_SECRET'), algorithm='HS256')
+        cache.set(f'access_token_{self.id}', token, timeout=3600)
         return token
 
     def check_password(self, raw_password):

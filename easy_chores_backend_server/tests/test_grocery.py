@@ -11,10 +11,11 @@ import os
 class GroceryTestCase(TestCase):
     def setUp(self):
         self.request = HttpRequest()
-        self.client = Client()
-        self.test_group = Group.objects.create(name='Test Group')
         self.user1 = User.objects.create(
             username='user1', email='user1@email.com')
+        self.token = self.user1.generate_access_token()
+        self.client = Client(headers={"Authorization": self.token})
+        self.test_group = Group.objects.create(name='Test Group')
         self.grocery = Grocery.objects.create(
             creator=self.user1, group=self.test_group, name='Test Grocery')
         with open('./easy_chores_backend_server/tests/test_image.png', 'rb') as test_photo:

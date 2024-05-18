@@ -6,22 +6,20 @@ from django.db.models.query import QuerySet
 from django.views.decorators.http import require_GET, require_POST
 from django.views import View
 from django.db import transaction
+from .auth_views import verify_token
+from django.utils.decorators import method_decorator
 import json
 
 
+@method_decorator(verify_token, name='dispatch')
 class GroupUserViews(View):
-    def __get_group(self, group_id: int) -> Group:
-        return Group.objects.get(id=group_id)
-
-    def __get_user(self, user_id: int) -> User:
-        return User.objects.get(id=user_id)
 
     def get(self, _, group_id: int):
         """
         Get all users within the group
         """
         try:
-            group = self.__get_group(group_id)
+            group = Group.objects.get(id=group_id)
             users = group.custom_user_set.all().values('id', 'username')
             return JsonResponse(list(users), safe=False)
         except Group.DoesNotExist:
@@ -34,8 +32,8 @@ class GroupUserViews(View):
         Add user into a group
         """
         try:
-            group = self.__get_group(group_id)
-            user = self.__get_user(user_id)
+            group = Group.objects.get(id=group_id)
+            user = User.objects.get(id=user_id)
             if user in group.custom_user_set.all():
                 raise ValueError(
                     f'User Id ({user_id}) already in Group Id ({group_id})')
@@ -55,8 +53,8 @@ class GroupUserViews(View):
         remove user from a group
         """
         try:
-            group = self.__get_group(group_id)
-            user = self.__get_user(user_id)
+            group = Group.objects.get(id=group_id)
+            user = User.objects.get(id=user_id)
             if user not in group.custom_user_set.all():
                 raise ValueError(
                     f'User Id ({user_id}) is not in Group Id ({group_id})')
@@ -73,6 +71,7 @@ class GroupUserViews(View):
 
 
 @require_POST
+@verify_token
 def create_group(request: HttpRequest):
     try:
         with transaction.atomic():
@@ -96,6 +95,7 @@ def create_group(request: HttpRequest):
 
 
 @require_GET
+@verify_token
 def get_grocery_list(_, group_id: int):
     try:
         group = Group.objects.get(id=group_id)
@@ -110,6 +110,7 @@ def get_grocery_list(_, group_id: int):
 
 
 @require_GET
+@verify_token
 def get_chore_list(_, group_id: int):
     try:
         group = Group.objects.get(id=group_id)

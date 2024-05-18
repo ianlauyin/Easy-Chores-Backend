@@ -3,17 +3,17 @@ from django.http import JsonResponse, HttpRequest
 from django.contrib.auth.models import Group
 from ..models import Chore, User
 import json
-import datetime
 
 
 class ChoreTestCase(TestCase):
     def setUp(self):
         self.request = HttpRequest()
-        self.client = Client()
-        self.group = Group.objects.create(name='Test Group')
-        self.chore = Chore.objects.create(group=self.group, title='Test title')
         self.user1 = User.objects.create(
             username='user1', email='user1@email.com')
+        self.token = self.user1.generate_access_token()
+        self.client = Client(headers={"Authorization": self.token})
+        self.group = Group.objects.create(name='Test Group')
+        self.chore = Chore.objects.create(group=self.group, title='Test title')
         self.chore.assigned_users.add(self.user1)
 
     def test_chore_view_get(self):
