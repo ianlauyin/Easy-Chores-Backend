@@ -2,6 +2,7 @@ from django.views.decorators.http import require_POST
 from django.http import HttpResponseBadRequest, JsonResponse, HttpResponseServerError
 from django.db import transaction
 from django.core.cache import cache
+from django.db.utils import IntegrityError
 from ..models import User
 from jwt.exceptions import DecodeError
 import json
@@ -24,6 +25,8 @@ def register(request):
             return JsonResponse({'access_token': access_token, 'user_id': user.id, 'username': user.username})
     except json.JSONDecodeError:
         return HttpResponseBadRequest('Required JSON body data')
+    except IntegrityError:
+        return HttpResponseBadRequest("A user with that email already exists.")
     except ValueError as e:
         return HttpResponseBadRequest(f'Missing Required body:{e}')
     except:
@@ -47,7 +50,7 @@ def login(request):
         return HttpResponseBadRequest('Required JSON body data')
     except ValueError as e:
         return HttpResponseBadRequest(f'Missing Required body:{e}')
-    except AssertionError:
+    except (AssertionError, User.DoesNotExist):
         return HttpResponseBadRequest('Invalid password', status=401)
     except:
         return HttpResponseServerError('Error is occured. Please try again later')
