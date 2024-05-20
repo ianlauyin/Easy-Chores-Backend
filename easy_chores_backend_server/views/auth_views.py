@@ -1,5 +1,5 @@
 from django.views.decorators.http import require_POST
-from django.http import HttpResponseBadRequest, JsonResponse, HttpResponseServerError, HttpResponseNotFound, HttpResponse, HttpRequest
+from django.http import HttpResponseBadRequest, JsonResponse, HttpResponseServerError
 from django.db import transaction
 from django.core.cache import cache
 from ..models import User
@@ -21,7 +21,7 @@ def register(request):
             user = User.objects.create_user(
                 username=data['username'], email=data['email'], password=data['password'])
             access_token = user.generate_access_token()
-            return JsonResponse({'access_token': access_token})
+            return JsonResponse({'access_token': access_token, 'user_id': user.id, 'username': user.username})
     except json.JSONDecodeError:
         return HttpResponseBadRequest('Required JSON body data')
     except ValueError as e:
@@ -42,7 +42,7 @@ def login(request):
         if not user.check_password(data['password']):
             raise AssertionError()
         access_token = user.generate_access_token()
-        return JsonResponse({'access_token': access_token})
+        return JsonResponse({'access_token': access_token, 'user_id': user.id, 'username': user.username})
     except json.JSONDecodeError:
         return HttpResponseBadRequest('Required JSON body data')
     except ValueError as e:

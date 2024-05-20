@@ -20,23 +20,23 @@ class GroupUserViews(View):
         """
         try:
             group = Group.objects.get(id=group_id)
-            users = group.custom_user_set.all().values('id', 'username')
+            users = group.custom_user_set.all().values('id', 'email', 'username')
             return JsonResponse(list(users), safe=False)
         except Group.DoesNotExist:
             return HttpResponseNotFound('Invalid Group Id')
         except:
             return HttpResponseServerError('Error is occured. Please try again later')
 
-    def post(self, _, group_id: int, user_id: int):
+    def post(self, _, group_id: int, user_email: str):
         """
         Add user into a group
         """
         try:
             group = Group.objects.get(id=group_id)
-            user = User.objects.get(id=user_id)
+            user = User.objects.get(email=user_email)
             if user in group.custom_user_set.all():
                 raise ValueError(
-                    f'User Id ({user_id}) already in Group Id ({group_id})')
+                    f'User Id ({user_email}) already in Group Id ({group_id})')
             group.custom_user_set.add(user)
             return HttpResponse(status=204)
         except Group.DoesNotExist:
@@ -48,16 +48,16 @@ class GroupUserViews(View):
         except:
             return HttpResponseServerError('Error is occured. Please try again later')
 
-    def delete(self, _, group_id: int, user_id: int):
+    def delete(self, _, group_id: int, user_email: str):
         """
         remove user from a group
         """
         try:
             group = Group.objects.get(id=group_id)
-            user = User.objects.get(id=user_id)
+            user = User.objects.get(email=user_email)
             if user not in group.custom_user_set.all():
                 raise ValueError(
-                    f'User Id ({user_id}) is not in Group Id ({group_id})')
+                    f'User Id ({user_email}) is not in Group Id ({group_id})')
             group.custom_user_set.remove(user)
             return HttpResponse(status=204)
         except Group.DoesNotExist:

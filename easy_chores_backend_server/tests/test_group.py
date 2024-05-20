@@ -35,11 +35,13 @@ class GroupTestCase(TestCase):
         expected_data = [
             {
                 'id': self.user1.id,
-                'username': 'user1',
+                'username': self.user1.username,
+                'email':self.user1.email
             },
             {
                 'id': self.user2.id,
-                'username': 'user2'
+                'username': self.user2.username,
+                'email':self.user2.email
             }
         ]
         self.assertEqual(json.loads(response.content), expected_data)
@@ -52,7 +54,7 @@ class GroupTestCase(TestCase):
         new_user = User.objects.create(
             username='user3', password='5678', email='user3@email.com')
         response = self.client.post(
-            f'/groups/{self.test_group.id}/users/{new_user.id}')
+            f'/groups/{self.test_group.id}/users/{new_user.email}')
         self.assertEqual(response.status_code, 204)
         self.assertTrue(self.test_group.custom_user_set.filter(
             id=new_user.id).exists())
@@ -60,7 +62,7 @@ class GroupTestCase(TestCase):
     def test_group_user_post_invalid_group(self):
         new_user = User.objects.create(
             username='user3', password='5678', email='user3@email.com')
-        response = self.client.post(f'/groups/0/users/{new_user.id}')
+        response = self.client.post(f'/groups/0/users/{new_user.email}')
         self.assertEqual(response.status_code, 404)
 
     def test_group_user_post_invalid_user(self):
@@ -69,18 +71,18 @@ class GroupTestCase(TestCase):
 
     def test_group_user_post_repeated_user(self):
         response = self.client.post(
-            f'/groups/{self.test_group.id}/users/{self.user1.id}')
+            f'/groups/{self.test_group.id}/users/{self.user1.email}')
         self.assertEqual(response.status_code, 400)
 
     def test_group_user_delete(self):
         response = self.client.delete(
-            f'/groups/{self.test_group.id}/users/{self.user1.id}')
+            f'/groups/{self.test_group.id}/users/{self.user1.email}')
         self.assertEqual(response.status_code, 204)
         self.assertTrue(
             self.user1 not in self.test_group.custom_user_set.all())
 
     def test_group_user_delete_invalid_group(self):
-        response = self.client.delete(f'/groups/0/users/{self.user1.id}')
+        response = self.client.delete(f'/groups/0/users/{self.user1.email}')
         self.assertEqual(response.status_code, 404)
 
     def test_group_user_delete_invalid_user_id(self):
@@ -91,7 +93,7 @@ class GroupTestCase(TestCase):
         new_user = User.objects.create(
             username='user3', password='5678', email='user3@email.com')
         response = self.client.delete(
-            f'/groups/{self.test_group.id}/users/{new_user.id}')
+            f'/groups/{self.test_group.id}/users/{new_user.email}')
         self.assertEqual(response.status_code, 400)
 
     def test_create_group(self):

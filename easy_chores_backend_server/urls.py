@@ -16,7 +16,7 @@ urlpatterns = [
     path('groups/<int:group_id>/groceries', get_grocery_list),
     path('groups/<int:group_id>/chores', get_chore_list),
     path('groups/<int:group_id>/users', GroupUserViews.as_view()),
-    path('groups/<int:group_id>/users/<int:user_id>', GroupUserViews.as_view()),
+    path('groups/<int:group_id>/users/<str:user_email>', GroupUserViews.as_view()),
     path('groceries', GroceryViews.as_view()),
     path('groceries/<int:grocery_id>', GroceryViews.as_view()),
     path('groceries/<int:grocery_id>/photos', add_grocery_photo),
