@@ -7,7 +7,7 @@ For the ios app for Easy Chores, please visit [https://github.com/ianlauyin/easy
 
 This backend server is mulitple API Endpoints for client to access the easy-chores database.
 
-###ERD
+# ERD
 [Easy-Chores-ERD](https://drawsql.app/teams/ianlau/diagrams/easy-chores)
 
 
