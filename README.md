@@ -44,15 +44,21 @@ python manage.py runserver
 ### Enviroment variable
 
 You need these in your .env for django setting.py
+```
 SECRET_KEY
 DEBUG
 ALLOWED_HOSTS
+```
 
 You need these in your .env for postgreSQL database
+```
 DB_NAME
 DB_USER
 DB_HOST
 DB_PORT
+```
 
 You need this in your .env for authentication token generation
+```
 TOKEN_SECRET
+```
